@@ -1,0 +1,1485 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Learny — Your All-in-One Smart Study Companion</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            lavender: {
+              50: '#FAF8FF',
+              100: '#F3EEFF',
+              200: '#E9DFFF',
+              300: '#D6C2FF',
+              400: '#B894FF',
+              500: '#935EFF',
+              600: '#7C3AED',
+              700: '#6D28D9',
+              800: '#5B21B6',
+              900: '#4C1D95',
+            },
+          },
+          boxShadow: {
+            'phone': '0 25px 65px -15px rgba(109, 40, 217, 0.22), 0 10px 25px -10px rgba(124, 58, 237, 0.14)',
+            'soft': '0 10px 30px -5px rgba(124, 58, 237, 0.08)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Lock viewport for clean full-screen presentation */
+    html, body {
+      height: 100dvh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #FFFFFF;
+      color: #1E1B4B;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* Subtle animated ambient orbs */
+    @keyframes floatSlow {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(18px, -22px) scale(1.04); }
+    }
+    @keyframes floatReverse {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-20px, 16px) scale(0.96); }
+    }
+    .orb-1 { animation: floatSlow 14s ease-in-out infinite; }
+    .orb-2 { animation: floatReverse 18s ease-in-out infinite; }
+
+    /* Slide transition states */
+    .slide-panel {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(28px) scale(0.985);
+      transition:
+        opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0.55s;
+      pointer-events: none;
+    }
+
+    .slide-panel.is-prev {
+      transform: translateY(-28px) scale(0.985);
+    }
+
+    .slide-panel.is-active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    /* Staggered child entrances inside active slide */
+    .slide-panel .stagger-1,
+    .slide-panel .stagger-2,
+    .slide-panel .stagger-3,
+    .slide-panel .stagger-phone {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .slide-panel .stagger-phone {
+      transform: translateY(22px) scale(0.96);
+    }
+
+    .slide-panel.is-active .stagger-1 { opacity: 1; transform: translateY(0); transition-delay: 0.08s; }
+    .slide-panel.is-active .stagger-2 { opacity: 1; transform: translateY(0); transition-delay: 0.16s; }
+    .slide-panel.is-active .stagger-3 { opacity: 1; transform: translateY(0); transition-delay: 0.24s; }
+    .slide-panel.is-active .stagger-phone { opacity: 1; transform: translateY(0) scale(1); transition-delay: 0.12s; }
+
+    /* Sleek Smartphone Bezel Frame */
+    .phone-frame {
+      position: relative;
+      aspect-ratio: 9 / 19.5;
+      /* Explicit responsive sizing so phone container always has non-zero width & height */
+      height: min(44vh, 380px);
+      width: auto;
+      max-width: 78vw;
+      border-radius: 34px;
+      background: linear-gradient(145deg, #2D264B 0%, #17132B 100%);
+      padding: 8px;
+      box-shadow:
+        0 25px 55px -12px rgba(109, 40, 217, 0.25),
+        0 0 0 1px rgba(139, 92, 246, 0.25),
+        inset 0 0 2px rgba(255, 255, 255, 0.35);
+      transition: transform 0.4s ease;
+    }
+
+    @media (min-width: 640px) {
+      .phone-frame {
+        height: min(48vh, 430px);
+        width: auto;
+        border-radius: 38px;
+        padding: 9px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .phone-frame {
+        height: min(56vh, 520px);
+        width: auto;
+        border-radius: 44px;
+        padding: 11px;
+      }
+    }
+
+    .phone-frame:hover {
+      transform: translateY(-4px);
+    }
+
+    .phone-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 27px;
+      overflow: hidden;
+      background-color: #FAF8FF;
+    }
+
+    .phone-screen-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .phone-screen-img.is-contain {
+      object-fit: contain;
+      object-position: center center;
+    }
+
+    @media (min-width: 640px) {
+      .phone-screen { border-radius: 30px; }
+    }
+    @media (min-width: 1024px) {
+      .phone-screen { border-radius: 34px; }
+    }
+
+    /* Subtle Dynamic Island notch */
+    .phone-notch {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28%;
+      height: 14px;
+      background-color: #131024;
+      border-radius: 999px;
+      z-index: 20;
+      pointer-events: none;
+      box-shadow: inset 0 -1px 1px rgba(255,255,255,0.12);
+    }
+
+    @media (min-width: 1024px) {
+      .phone-notch {
+        top: 10px;
+        height: 18px;
+      }
+    }
+
+    /* Custom scrollbar for slide directory drawer */
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #FAF8FF;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #D6C2FF;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-lavender-200 selection:text-lavender-900">
+
+  <!-- Background Soft Gradient & Decorative Orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-gradient-to-br from-white via-lavender-50 to-lavender-100/80">
+    <!-- Top-right soft purple glow -->
+    <div class="orb-1 absolute -top-24 -right-24 w-80 h-80 sm:w-[480px] sm:h-[480px] rounded-full bg-lavender-200/45 blur-3xl"></div>
+    <!-- Bottom-left soft violet glow -->
+    <div class="orb-2 absolute -bottom-28 -left-24 w-72 h-72 sm:w-[440px] sm:h-[440px] rounded-full bg-purple-200/40 blur-3xl"></div>
+    <!-- Subtle geometric grid overlay -->
+    <div class="absolute inset-0 opacity-[0.35]" style="background-image: radial-gradient(#C4B5FD 0.85px, transparent 0.85px); background-size: 26px 26px;"></div>
+  </div>
+
+  <!-- Top Minimalist Header -->
+  <header class="fixed top-0 inset-x-0 z-40 h-16 sm:h-18 px-4 sm:px-8 flex items-center justify-between bg-white/75 backdrop-blur-md border-b border-lavender-200/60">
+    <!-- Brand Identity -->
+    <button onclick="goToSlide(0)" class="flex items-center gap-2.5 group text-left focus:outline-none">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-lavender-600 to-lavender-800 flex items-center justify-center text-white shadow-md shadow-lavender-600/25 group-hover:scale-105 transition-transform">
+        <!-- Graduation / Sparkle Book Icon -->
+        <svg class="w-5 h-5 sm:w-5.5 sm:h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      </div>
+      <div>
+        <span class="font-display font-extrabold text-lg sm:text-xl tracking-tight text-slate-900">Learny</span>
+        <span class="hidden sm:inline-block ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-lavender-100 text-lavender-700 border border-lavender-200">Product Tour</span>
+      </div>
+    </button>
+
+    <!-- Right Header Controls: Slide Selector & Counter -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <span id="headerSlideBadge" class="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-lavender-700 bg-lavender-100/80 px-3 py-1.5 rounded-full border border-lavender-200/80">
+        <span class="w-1.5 h-1.5 rounded-full bg-lavender-600 animate-pulse"></span>
+        <span id="headerSlideTitle">Welcome to Learny</span>
+      </span>
+
+      <button id="menuToggleBtn" onclick="toggleDrawer()" aria-label="Open slide directory"
+        class="inline-flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-lavender-800 bg-lavender-100/90 hover:bg-lavender-200/80 border border-lavender-200 transition-all shadow-sm active:scale-95">
+        <svg class="w-4 h-4 text-lavender-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        <span>All Slides</span>
+        <span id="topCounter" class="font-mono text-xs bg-white text-lavender-700 px-1.5 py-0.5 rounded-md border border-lavender-200">01/11</span>
+      </button>
+    </div>
+
+    <!-- Top Continuous Progress Bar -->
+    <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-lavender-100">
+      <div id="topProgressBar" class="h-full bg-gradient-to-r from-lavender-500 via-lavender-600 to-purple-700 transition-all duration-500 ease-out" style="width: 9.09%;"></div>
+    </div>
+  </header>
+
+  <!-- Slide Directory Drawer / Modal -->
+  <div id="slideDrawerBackdrop" onclick="toggleDrawer(false)" class="fixed inset-0 z-50 bg-slate-950/25 backdrop-blur-xs opacity-0 pointer-events-none transition-opacity duration-300"></div>
+  <aside id="slideDrawer" class="fixed top-3 right-3 bottom-3 z-50 w-[calc(100vw-24px)] max-w-sm bg-white/95 backdrop-blur-xl rounded-2xl border border-lavender-200 shadow-2xl flex flex-col translate-x-[110%] transition-transform duration-300 ease-out">
+    <div class="p-4 sm:p-5 border-b border-lavender-100 flex items-center justify-between">
+      <div>
+        <h2 class="font-display font-bold text-base sm:text-lg text-slate-900">Presentation Slides</h2>
+        <p class="text-xs text-slate-500">Jump directly to any Learny feature</p>
+      </div>
+      <button onclick="toggleDrawer(false)" class="w-8 h-8 rounded-xl bg-lavender-50 hover:bg-lavender-100 text-lavender-700 flex items-center justify-center transition-colors">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div id="drawerList" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-1.5">
+      <!-- Populated dynamically via JS -->
+    </div>
+    <div class="p-3.5 border-t border-lavender-100 bg-lavender-50/70 rounded-b-2xl text-center">
+      <p class="text-[11px] font-medium text-lavender-700">Tip: Use arrow keys, scroll wheel, or swipe left/right</p>
+    </div>
+  </aside>
+
+  <!-- Main Viewport Slide Stage -->
+  <main id="slidesViewport" class="relative z-10 w-full h-full pt-16 pb-20 sm:pt-18 sm:pb-22 overflow-hidden">
+
+    <!-- Slide 1: Welcome to Learny -->
+    <section class="slide-panel is-active flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="0" aria-hidden="false">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/L6GZRvc3/AIRetouch-20260419-004559183.png" alt="Learny App - Welcome to Learny" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/L6GZRvc3/AIRetouch-20260419-004559183.png', 'Welcome to Learny')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">01</span>
+              <span class="text-xs font-bold text-slate-800">Welcome</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#01</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>All-in-One Study Ecosystem</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Welcome to Learny</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Your Smart Study Companion for Effortless Learning</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Meet the all-in-one mobile workspace built to help students focus deeper, solve problems faster, and organize every academic goal in one calm, intelligent app.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">10+ integrated academic &amp; focus tools</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Clean, distraction-free student interface</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Designed for daily school &amp; university success</span>
+            </li>
+          </ul>
+          <div class="stagger-3 pt-2 sm:pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+            <button onclick="nextSlide()" class="inline-flex items-center gap-2.5 px-6 py-3 sm:px-7 sm:py-3.5 rounded-2xl text-sm sm:text-base font-bold text-white bg-gradient-to-r from-lavender-600 to-lavender-800 hover:from-lavender-700 hover:to-lavender-900 shadow-lg shadow-lavender-600/30 transition-all hover:-translate-y-0.5 active:scale-95">
+              <span>Start Tour</span>
+              <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="toggleDrawer(true)" class="inline-flex items-center gap-2 px-5 py-3 sm:py-3.5 rounded-2xl text-sm font-semibold text-lavender-800 bg-white hover:bg-lavender-50 border border-lavender-200 shadow-sm transition-all active:scale-95">
+              <span>Explore 11 Features</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 2: Learny AI Assistant -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="1" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/sD1Vjh7V/AIRetouch-20260420-153217931.png" alt="Learny App - Learny AI Assistant" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/sD1Vjh7V/AIRetouch-20260420-153217931.png', 'Learny AI Assistant')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">02</span>
+              <span class="text-xs font-bold text-slate-800">Learny AI</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#02</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>24/7 Intelligent Tutor</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Learny AI Assistant</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Instant Explanations &amp; Step-by-Step Homework Help</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Stuck on a complex topic or tough assignment? Ask Learny AI for clear breakdowns, tailored study summaries, and guided explanations whenever you need them.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Instant answers with clear step-by-step logic</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Summarize lecture notes &amp; difficult chapters</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Context-aware support across all subjects</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Edu Games</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Educational Games -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="2" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/639XD2Bt/AIRetouch-20260526-153732877.png" alt="Learny App - Educational Games" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/639XD2Bt/AIRetouch-20260526-153732877.png', 'Educational Games')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">03</span>
+              <span class="text-xs font-bold text-slate-800">Edu Games</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#03</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Playful Brain Training</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Educational Games</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Sharpen Memory, Logic &amp; Speed While Having Fun</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Turn study breaks into productive mental workouts with interactive educational mini-games crafted to boost cognitive agility, recall, and problem-solving.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Quick interactive quizzes &amp; logic challenges</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Improves memory retention and reaction speed</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Rewarding progression that keeps learning fun</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Study Room</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: Virtual Study Room -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="3" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/W483D7yh/AIRetouch-20260817-021534478.png" alt="Learny App - Virtual Study Room" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/W483D7yh/AIRetouch-20260817-021534478.png', 'Virtual Study Room')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">04</span>
+              <span class="text-xs font-bold text-slate-800">Study Room</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#04</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Focused Environments</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Virtual Study Room</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Collaborative &amp; Distraction-Free Study Spaces</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Step into dedicated study rooms designed to mirror real library accountability—stay motivated alongside peers or lock into a tranquil solo session.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Accountability-driven focus sessions</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Organized goal tracking inside every room</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Built to eliminate phone &amp; social distractions</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Calculator</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 5: Smart Calculator -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="4" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/Sx7Q5rkL/AIRetouch-20260625-182451719.png" alt="Learny App - Smart Calculator" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/Sx7Q5rkL/AIRetouch-20260625-182451719.png', 'Smart Calculator')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">05</span>
+              <span class="text-xs font-bold text-slate-800">Calculator</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#05</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Precision Math Engine</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Smart Calculator</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Fast, Reliable Arithmetic &amp; Scientific Calculations</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Tackle equations without switching apps. Learny’s built-in calculator gives you instant accuracy for algebra, trigonometry, and everyday homework math.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Clean, responsive keypad with instant results</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Supports scientific functions &amp; complex expressions</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Always one tap away during study sessions</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Converter</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 6: Unit Converter -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="5" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/nVBLBZg3/AIRetouch-20260625-182411133.png" alt="Learny App - Unit Converter" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/nVBLBZg3/AIRetouch-20260625-182411133.png', 'Unit Converter')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">06</span>
+              <span class="text-xs font-bold text-slate-800">Converter</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#06</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Instant STEM Utility</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Unit Converter</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Effortless Conversions for Science &amp; Daily Study</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Convert length, mass, temperature, speed, energy, and more in milliseconds—ideal for physics labs, chemistry problems, and engineering coursework.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Comprehensive categories for STEM subjects</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Real-time bidirectional unit conversion</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Zero clutter, high-precision decimal output</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Translator</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Instant Translator -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="6" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/7hkwmGdF/AIRetouch-20260625-021407970.png" alt="Learny App - Instant Translator" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/7hkwmGdF/AIRetouch-20260625-021407970.png', 'Instant Translator')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">07</span>
+              <span class="text-xs font-bold text-slate-800">Translator</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#07</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Global Language Bridge</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Instant Translator</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Break Language Barriers Across Global Resources</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Translate vocabulary, foreign-language articles, and study passages seamlessly so you can learn languages or read international research with confidence.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Fast, accurate multi-language text translation</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Ideal for language learners &amp; international students</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Simple copy-and-study workflow</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Pomodoro</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 8: Pomodoro Timer -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="7" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/T1tYkjb7/AIRetouch-20260419-014603316.png" alt="Learny App - Pomodoro Timer" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/T1tYkjb7/AIRetouch-20260419-014603316.png', 'Pomodoro Timer')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">08</span>
+              <span class="text-xs font-bold text-slate-800">Pomodoro</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#08</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Science-Backed Focus</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Pomodoro Timer</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Structured Focus Intervals &amp; Mindful Breaks</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Beat procrastination and mental burnout using customizable work-and-rest cycles that keep your energy steady throughout long study days.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Customizable 25/5 focus and recovery intervals</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Visual session progress rings &amp; gentle alerts</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Builds consistent daily deep-work habits</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Countdown</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 9: Exam & Event Countdown -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="8" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/651pn0tS/AIRetouch-20260419-141631695.png" alt="Learny App - Exam and Event Countdown" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/651pn0tS/AIRetouch-20260419-141631695.png', 'Exam & Event Countdown')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">09</span>
+              <span class="text-xs font-bold text-slate-800">Countdown</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#09</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Smart Deadline Tracker</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Exam &amp; Event Countdown</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Never Miss an Exam, Assignment, or Milestone</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Visualize every upcoming test, project submission, and academic deadline with live countdown cards that keep your revision schedule right on track.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Live days, hours &amp; minutes exam trackers</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Prioritize upcoming tests at a glance</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Stay calm and prepared ahead of finals</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Focus Music</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10: Focus Music & Beats -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="9" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/vBzQB70T/AIRetouch-20260419-163109872.png" alt="Learny App - Focus Music and Beats" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/vBzQB70T/AIRetouch-20260419-163109872.png', 'Focus Music & Beats')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">10</span>
+              <span class="text-xs font-bold text-slate-800">Focus Music</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#10</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Acoustic Concentration</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Focus Music &amp; Beats</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Calming Ambient Soundscapes for Deep Flow</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">Tune out noisy surroundings with curated lo-fi beats, soft ambient melodies, and soothing study audio engineered to enhance sustained concentration.</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Curated instrumental &amp; ambient study tracks</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Pairs seamlessly with Pomodoro &amp; Study Room</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Creates an instant calm study atmosphere</span>
+            </li>
+          </ul>
+          <div class="stagger-3 hidden sm:flex items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold text-lavender-700">
+            <span class="inline-flex items-center gap-1.5 bg-lavender-100/80 px-3 py-1.5 rounded-xl border border-lavender-200/70">
+              <svg class="w-3.5 h-3.5 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Included Free in Learny
+            </span>
+            <button onclick="nextSlide()" class="inline-flex items-center gap-1 text-lavender-700 hover:text-lavender-900 underline underline-offset-4">
+              <span>Next: Get Started</span>
+              <span>→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 11: Love Learny? Rate & Get Started -->
+    <section class="slide-panel flex items-center justify-center px-4 sm:px-8 lg:px-14" data-index="10" aria-hidden="true">
+      <div class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-12 items-center h-full max-h-full py-1">
+        <div class="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center stagger-phone">
+          <div class="relative flex items-center justify-center">
+            <div class="absolute -inset-4 sm:-inset-6 rounded-[48px] bg-gradient-to-tr from-lavender-300/40 via-purple-200/30 to-white/60 blur-xl pointer-events-none"></div>
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <img src="https://i.postimg.cc/fbv4jzYT/AIRetouch-20260620-233633328.png" alt="Learny App - Rate and Get Started" class="phone-screen-img select-none" loading="eager" onerror="handleImgError(this, 'https://i.postimg.cc/fbv4jzYT/AIRetouch-20260620-233633328.png', 'Rate & Get Started')" />
+              </div>
+              <button type="button" onclick="toggleImageFit()" class="fit-toggle-btn absolute top-3 right-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-900/75 hover:bg-lavender-700 text-white text-[10px] font-semibold backdrop-blur-md border border-white/20 shadow-sm transition-colors" title="Switch between Fill Frame and Fit Full Screen">
+                <span class="fit-toggle-label">Fit Full Screen</span>
+              </button>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 absolute -bottom-3 -left-4 lg:-left-6 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-lavender-200 shadow-lg shadow-lavender-900/10">
+              <span class="w-6 h-6 rounded-lg bg-lavender-600 text-white font-display font-bold text-xs flex items-center justify-center">11</span>
+              <span class="text-xs font-bold text-slate-800">Get Started</span>
+            </div>
+          </div>
+        </div>
+        <div class="order-2 lg:order-1 lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left space-y-2 sm:space-y-3.5 lg:space-y-4 px-1">
+          <div class="stagger-1 inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-lavender-100 border border-lavender-200/90 text-lavender-800 text-[11px] sm:text-xs font-bold tracking-wide uppercase shadow-2xs">
+            <span class="text-lavender-600 font-mono">#11</span>
+            <span class="w-1 h-1 rounded-full bg-lavender-400"></span>
+            <span>Join the Learny Community</span>
+          </div>
+          <div class="stagger-1 space-y-1 sm:space-y-1.5">
+            <h1 class="font-display font-extrabold text-2xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.12]">Love Learny? Rate &amp; Get Started</h1>
+            <p class="font-display font-semibold text-sm sm:text-lg lg:text-xl text-lavender-700 leading-snug">Elevate Your Study Routine Today</p>
+          </div>
+          <p class="stagger-2 text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-3 sm:line-clamp-none">From AI tutoring and focus timers to calculators and ambient music, Learny brings everything a student needs into one elegant app. Share your rating and start learning smarter!</p>
+          <ul class="stagger-2 w-full max-w-xl grid grid-cols-1 gap-1.5 sm:gap-2 pt-0.5 text-left">
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">5-star student experience built with care</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Your feedback shapes future Learny updates</span>
+            </li>
+            <li class="flex items-center gap-2.5 bg-white/85 backdrop-blur-xs px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl border border-lavender-200/75 shadow-2xs">
+              <span class="shrink-0 w-5 h-5 rounded-full bg-lavender-100 text-lavender-700 flex items-center justify-center"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="text-xs sm:text-sm font-medium text-slate-700 leading-tight">Ready whenever and wherever you study</span>
+            </li>
+          </ul>
+          <div class="stagger-3 pt-2 sm:pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+            <button onclick="showToast('Thank you for rating Learny 5 stars! ⭐')" class="inline-flex items-center gap-2 px-6 py-3 sm:px-7 sm:py-3.5 rounded-2xl text-sm sm:text-base font-bold text-white bg-gradient-to-r from-lavender-600 to-lavender-800 hover:from-lavender-700 hover:to-lavender-900 shadow-lg shadow-lavender-600/30 transition-all hover:-translate-y-0.5 active:scale-95">
+              <svg class="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 fill-amber-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <span>Rate Learny App</span>
+            </button>
+            <button onclick="goToSlide(0)" class="inline-flex items-center gap-2 px-5 py-3 sm:py-3.5 rounded-2xl text-sm font-semibold text-lavender-800 bg-white hover:bg-lavender-50 border border-lavender-200 shadow-sm transition-all active:scale-95">
+              <svg class="w-4 h-4 text-lavender-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>Replay Presentation</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Desktop Right-Edge Vertical Dot Navigation -->
+  <nav id="sideDotNav" aria-label="Slide indicators" class="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-2.5 bg-white/80 backdrop-blur-md py-3 px-2 rounded-full border border-lavender-200/80 shadow-soft">
+    <!-- Populated dynamically -->
+  </nav>
+
+  <!-- Bottom Floating Navigation Bar -->
+  <footer class="fixed bottom-0 inset-x-0 z-30 h-20 sm:h-22 px-4 sm:px-8 flex items-center justify-center pointer-events-none">
+    <div class="pointer-events-auto flex items-center justify-between gap-3 sm:gap-5 w-full max-w-2xl bg-white/90 backdrop-blur-lg border border-lavender-200/90 shadow-lg shadow-lavender-900/5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl">
+      
+      <!-- Previous Button -->
+      <button id="prevBtn" onclick="prevSlide()" aria-label="Previous slide"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-lavender-800 bg-lavender-50 hover:bg-lavender-100 disabled:opacity-40 disabled:pointer-events-none border border-lavender-200/80 transition-all active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+        <span>Prev</span>
+      </button>
+
+      <!-- Center Compact Dot / Step Indicator -->
+      <div class="flex flex-col items-center gap-1">
+        <div id="bottomDotNav" class="flex items-center gap-1 sm:gap-1.5">
+          <!-- Populated dynamically -->
+        </div>
+        <span id="bottomCounterText" class="text-[11px] font-semibold text-slate-500 tracking-wide">
+          Slide 1 of 11
+        </span>
+      </div>
+
+      <!-- Next Button -->
+      <button id="nextBtn" onclick="nextSlide()" aria-label="Next slide"
+        class="inline-flex items-center gap-1.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-lavender-600 to-lavender-700 hover:from-lavender-700 hover:to-lavender-800 shadow-md shadow-lavender-600/25 transition-all active:scale-95">
+        <span id="nextBtnLabel">Next</span>
+        <svg id="nextBtnIcon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Toast Message Box (Replaces any alert/confirm) -->
+  <div id="toastBox" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-2 transition-all duration-300">
+    <div class="bg-lavender-900 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 border border-lavender-700">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span id="toastText">Welcome to Learny!</span>
+    </div>
+  </div>
+
+  <script>
+    // Complete dataset for all 11 slides in exact requested order
+    const SLIDES = [
+      {
+        id: 1,
+        shortTitle: "Welcome",
+        badge: "All-in-One Study Ecosystem",
+        title: "Welcome to Learny",
+        subtitle: "Your Smart Study Companion for Effortless Learning",
+        description: "Meet the all-in-one mobile workspace built to help students focus deeper, solve problems faster, and organize every academic goal in one calm, intelligent app.",
+        image: "https://i.postimg.cc/L6GZRvc3/AIRetouch-20260419-004559183.png",
+        highlights: [
+          "10+ integrated academic & focus tools",
+          "Clean, distraction-free student interface",
+          "Designed for daily school & university success"
+        ],
+        isHero: true
+      },
+      {
+        id: 2,
+        shortTitle: "Learny AI",
+        badge: "24/7 Intelligent Tutor",
+        title: "Learny AI Assistant",
+        subtitle: "Instant Explanations & Step-by-Step Homework Help",
+        description: "Stuck on a complex topic or tough assignment? Ask Learny AI for clear breakdowns, tailored study summaries, and guided explanations whenever you need them.",
+        image: "https://i.postimg.cc/sD1Vjh7V/AIRetouch-20260420-153217931.png",
+        highlights: [
+          "Instant answers with clear step-by-step logic",
+          "Summarize lecture notes & difficult chapters",
+          "Context-aware support across all subjects"
+        ]
+      },
+      {
+        id: 3,
+        shortTitle: "Edu Games",
+        badge: "Playful Brain Training",
+        title: "Educational Games",
+        subtitle: "Sharpen Memory, Logic & Speed While Having Fun",
+        description: "Turn study breaks into productive mental workouts with interactive educational mini-games crafted to boost cognitive agility, recall, and problem-solving.",
+        image: "https://i.postimg.cc/639XD2Bt/AIRetouch-20260526-153732877.png",
+        highlights: [
+          "Quick interactive quizzes & logic challenges",
+          "Improves memory retention and reaction speed",
+          "Rewarding progression that keeps learning fun"
+        ]
+      },
+      {
+        id: 4,
+        shortTitle: "Study Room",
+        badge: "Focused Environments",
+        title: "Virtual Study Room",
+        subtitle: "Collaborative & Distraction-Free Study Spaces",
+        description: "Step into dedicated study rooms designed to mirror real library accountability—stay motivated alongside peers or lock into a tranquil solo session.",
+        image: "https://i.postimg.cc/W483D7yh/AIRetouch-20260817-021534478.png",
+        highlights: [
+          "Accountability-driven focus sessions",
+          "Organized goal tracking inside every room",
+          "Built to eliminate phone & social distractions"
+        ]
+      },
+      {
+        id: 5,
+        shortTitle: "Calculator",
+        badge: "Precision Math Engine",
+        title: "Smart Calculator",
+        subtitle: "Fast, Reliable Arithmetic & Scientific Calculations",
+        description: "Tackle equations without switching apps. Learny’s built-in calculator gives you instant accuracy for algebra, trigonometry, and everyday homework math.",
+        image: "https://i.postimg.cc/Sx7Q5rkL/AIRetouch-20260625-182451719.png",
+        highlights: [
+          "Clean, responsive keypad with instant results",
+          "Supports scientific functions & complex expressions",
+          "Always one tap away during study sessions"
+        ]
+      },
+      {
+        id: 6,
+        shortTitle: "Converter",
+        badge: "Instant STEM Utility",
+        title: "Unit Converter",
+        subtitle: "Effortless Conversions for Science & Daily Study",
+        description: "Convert length, mass, temperature, speed, energy, and more in milliseconds—ideal for physics labs, chemistry problems, and engineering coursework.",
+        image: "https://i.postimg.cc/nVBLBZg3/AIRetouch-20260625-182411133.png",
+        highlights: [
+          "Comprehensive categories for STEM subjects",
+          "Real-time bidirectional unit conversion",
+          "Zero clutter, high-precision decimal output"
+        ]
+      },
+      {
+        id: 7,
+        shortTitle: "Translator",
+        badge: "Global Language Bridge",
+        title: "Instant Translator",
+        subtitle: "Break Language Barriers Across Global Resources",
+        description: "Translate vocabulary, foreign-language articles, and study passages seamlessly so you can learn languages or read international research with confidence.",
+        image: "https://i.postimg.cc/7hkwmGdF/AIRetouch-20260625-021407970.png",
+        highlights: [
+          "Fast, accurate multi-language text translation",
+          "Ideal for language learners & international students",
+          "Simple copy-and-study workflow"
+        ]
+      },
+      {
+        id: 8,
+        shortTitle: "Pomodoro",
+        badge: "Science-Backed Focus",
+        title: "Pomodoro Timer",
+        subtitle: "Structured Focus Intervals & Mindful Breaks",
+        description: "Beat procrastination and mental burnout using customizable work-and-rest cycles that keep your energy steady throughout long study days.",
+        image: "https://i.postimg.cc/T1tYkjb7/AIRetouch-20260419-014603316.png",
+        highlights: [
+          "Customizable 25/5 focus and recovery intervals",
+          "Visual session progress rings & gentle alerts",
+          "Builds consistent daily deep-work habits"
+        ]
+      },
+      {
+        id: 9,
+        shortTitle: "Countdown",
+        badge: "Smart Deadline Tracker",
+        title: "Exam & Event Countdown",
+        subtitle: "Never Miss an Exam, Assignment, or Milestone",
+        description: "Visualize every upcoming test, project submission, and academic deadline with live countdown cards that keep your revision schedule right on track.",
+        image: "https://i.postimg.cc/651pn0tS/AIRetouch-20260419-141631695.png",
+        highlights: [
+          "Live days, hours & minutes exam trackers",
+          "Prioritize upcoming tests at a glance",
+          "Stay calm and prepared ahead of finals"
+        ]
+      },
+      {
+        id: 10,
+        shortTitle: "Focus Music",
+        badge: "Acoustic Concentration",
+        title: "Focus Music & Beats",
+        subtitle: "Calming Ambient Soundscapes for Deep Flow",
+        description: "Tune out noisy surroundings with curated lo-fi beats, soft ambient melodies, and soothing study audio engineered to enhance sustained concentration.",
+        image: "https://i.postimg.cc/vBzQB70T/AIRetouch-20260419-163109872.png",
+        highlights: [
+          "Curated instrumental & ambient study tracks",
+          "Pairs seamlessly with Pomodoro & Study Room",
+          "Creates an instant calm study atmosphere"
+        ]
+      },
+      {
+        id: 11,
+        shortTitle: "Get Started",
+        badge: "Join the Learny Community",
+        title: "Love Learny? Rate & Get Started",
+        subtitle: "Elevate Your Study Routine Today",
+        description: "From AI tutoring and focus timers to calculators and ambient music, Learny brings everything a student needs into one elegant app. Share your rating and start learning smarter!",
+        image: "https://i.postimg.cc/fbv4jzYT/AIRetouch-20260620-233633328.png",
+        highlights: [
+          "5-star student experience built with care",
+          "Your feedback shapes future Learny updates",
+          "Ready whenever and wherever you study"
+        ],
+        isFinal: true
+      }
+    ];
+
+    let currentIndex = 0;
+    let isAnimating = false;
+    let wheelCooldown = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isContainMode = false;
+
+    const viewport = document.getElementById('slidesViewport');
+    const drawerList = document.getElementById('drawerList');
+    const sideDotNav = document.getElementById('sideDotNav');
+    const bottomDotNav = document.getElementById('bottomDotNav');
+    const topProgressBar = document.getElementById('topProgressBar');
+    const topCounter = document.getElementById('topCounter');
+    const headerSlideTitle = document.getElementById('headerSlideTitle');
+    const bottomCounterText = document.getElementById('bottomCounterText');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const nextBtnLabel = document.getElementById('nextBtnLabel');
+    const nextBtnIcon = document.getElementById('nextBtnIcon');
+
+    // Toggle between Fill Frame (object-fit: cover) and Fit Full Screen (object-fit: contain)
+    function toggleImageFit() {
+      isContainMode = !isContainMode;
+      document.querySelectorAll('.phone-screen-img').forEach((img) => {
+        img.classList.toggle('is-contain', isContainMode);
+      });
+      document.querySelectorAll('.fit-toggle-label').forEach((label) => {
+        label.textContent = isContainMode ? 'Fill Frame' : 'Fit Full Screen';
+      });
+    }
+
+    // Fallback handler with helpful retry button if an image fails to load
+    function handleImgError(imgEl, originalUrl, title) {
+      const screen = imgEl.parentElement;
+      if (!screen || screen.querySelector('.img-error-card')) return;
+
+      imgEl.style.display = 'none';
+      const fallback = document.createElement('div');
+      fallback.className = 'img-error-card w-full h-full flex flex-col items-center justify-center p-4 text-center bg-lavender-50 text-slate-700 gap-3';
+      fallback.innerHTML = `
+        <div class="w-11 h-11 rounded-2xl bg-lavender-100 text-lavender-700 flex items-center justify-center border border-lavender-200">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+        </div>
+        <div class="space-y-1">
+          <p class="text-xs font-bold text-slate-900">${title}</p>
+          <p class="text-[11px] text-slate-500 leading-snug">Screenshot could not be loaded right now.</p>
+        </div>
+        <button type="button" class="retry-img-btn px-3.5 py-1.5 rounded-xl bg-lavender-600 hover:bg-lavender-700 text-white text-xs font-semibold shadow-sm transition-colors">
+          Retry Image
+        </button>
+      `;
+
+      fallback.querySelector('.retry-img-btn').onclick = () => {
+        fallback.remove();
+        imgEl.style.display = 'block';
+        const separator = originalUrl.includes('?') ? '&' : '?';
+        imgEl.src = `${originalUrl}${separator}retry=${Date.now()}`;
+      };
+
+      screen.appendChild(fallback);
+    }
+
+    // Initialize Navigation Controls (Drawer Items, Side Dots, and Bottom Dots)
+    function initPresentation() {
+      SLIDES.forEach((slide, idx) => {
+        const formattedNum = String(slide.id).padStart(2, '0');
+
+        // 1. Build Drawer Menu Item
+        const drawerBtn = document.createElement('button');
+        drawerBtn.className = `drawer-item w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all border ${
+          idx === 0
+            ? 'bg-lavender-100/90 border-lavender-300 text-lavender-950'
+            : 'bg-white hover:bg-lavender-50 border-transparent text-slate-700'
+        }`;
+        drawerBtn.setAttribute('data-idx', idx);
+        drawerBtn.onclick = () => {
+          goToSlide(idx);
+          toggleDrawer(false);
+        };
+        drawerBtn.innerHTML = `
+          <span class="w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 ${
+            idx === 0 ? 'bg-lavender-600 text-white' : 'bg-lavender-100 text-lavender-700'
+          }">${formattedNum}</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm font-bold truncate">${slide.title}</div>
+            <div class="text-[11px] text-slate-500 truncate">${slide.badge}</div>
+          </div>
+          <svg class="w-4 h-4 text-lavender-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        `;
+        drawerList.appendChild(drawerBtn);
+
+        // 2. Build Desktop Side Dot
+        const sideDot = document.createElement('button');
+        sideDot.className = `side-dot group relative flex items-center justify-center w-3.5 h-3.5 rounded-full transition-all focus:outline-none`;
+        sideDot.setAttribute('aria-label', `Go to slide ${idx + 1}: ${slide.shortTitle}`);
+        sideDot.onclick = () => goToSlide(idx);
+        sideDot.innerHTML = `
+          <span class="dot-inner block rounded-full transition-all duration-300 ${
+            idx === 0 ? 'w-2.5 h-2.5 bg-lavender-600 ring-4 ring-lavender-200' : 'w-2 h-2 bg-lavender-300 group-hover:bg-lavender-500'
+          }"></span>
+          <span class="pointer-events-none absolute right-7 px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px] font-semibold whitespace-nowrap opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all shadow-md">
+            ${formattedNum}. ${slide.shortTitle}
+          </span>
+        `;
+        sideDotNav.appendChild(sideDot);
+
+        // 3. Build Bottom Compact Pill Dot
+        const bottomDot = document.createElement('button');
+        bottomDot.className = `bottom-dot h-2 rounded-full transition-all duration-300 focus:outline-none ${
+          idx === 0 ? 'w-6 bg-lavender-600' : 'w-2 bg-lavender-200 hover:bg-lavender-400'
+        }`;
+        bottomDot.setAttribute('aria-label', `Slide ${idx + 1}`);
+        bottomDot.onclick = () => goToSlide(idx);
+        bottomDotNav.appendChild(bottomDot);
+      });
+
+      updateUIState();
+    }
+
+    // Navigate to specific slide index
+    function goToSlide(targetIndex) {
+      if (targetIndex < 0 || targetIndex >= SLIDES.length || targetIndex === currentIndex) return;
+
+      const panels = document.querySelectorAll('.slide-panel');
+      panels.forEach((panel, idx) => {
+        panel.classList.remove('is-active', 'is-prev');
+        panel.setAttribute('aria-hidden', idx !== targetIndex);
+
+        if (idx < targetIndex) {
+          panel.classList.add('is-prev');
+        } else if (idx === targetIndex) {
+          panel.classList.add('is-active');
+        }
+      });
+
+      currentIndex = targetIndex;
+      updateUIState();
+    }
+
+    function nextSlide() {
+      if (currentIndex < SLIDES.length - 1) {
+        goToSlide(currentIndex + 1);
+      } else {
+        goToSlide(0);
+      }
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) {
+        goToSlide(currentIndex - 1);
+      }
+    }
+
+    // Sync headers, counters, dots, drawer highlights, and buttons
+    function updateUIState() {
+      const total = SLIDES.length;
+      const current = SLIDES[currentIndex];
+      const formattedCurrent = String(currentIndex + 1).padStart(2, '0');
+      const formattedTotal = String(total).padStart(2, '0');
+
+      // Top bar updates
+      topCounter.textContent = `${formattedCurrent}/${formattedTotal}`;
+      headerSlideTitle.textContent = current.shortTitle;
+      topProgressBar.style.width = `${((currentIndex + 1) / total) * 100}%`;
+
+      // Bottom bar updates
+      bottomCounterText.textContent = `Slide ${currentIndex + 1} of ${total} • ${current.shortTitle}`;
+      prevBtn.disabled = currentIndex === 0;
+
+      if (currentIndex === total - 1) {
+        nextBtnLabel.textContent = 'Restart';
+        nextBtnIcon.innerHTML = `<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>`;
+      } else {
+        nextBtnLabel.textContent = 'Next';
+        nextBtnIcon.innerHTML = `<path d="M9 18l6-6-6-6"/>`;
+      }
+
+      // Bottom dots
+      document.querySelectorAll('.bottom-dot').forEach((dot, idx) => {
+        if (idx === currentIndex) {
+          dot.className = 'bottom-dot h-2 w-6 rounded-full bg-lavender-600 transition-all duration-300 focus:outline-none';
+        } else {
+          dot.className = 'bottom-dot h-2 w-2 rounded-full bg-lavender-200 hover:bg-lavender-400 transition-all duration-300 focus:outline-none';
+        }
+      });
+
+      // Side dots
+      document.querySelectorAll('.side-dot .dot-inner').forEach((inner, idx) => {
+        if (idx === currentIndex) {
+          inner.className = 'dot-inner block rounded-full transition-all duration-300 w-2.5 h-2.5 bg-lavender-600 ring-4 ring-lavender-200';
+        } else {
+          inner.className = 'dot-inner block rounded-full transition-all duration-300 w-2 h-2 bg-lavender-300 group-hover:bg-lavender-500';
+        }
+      });
+
+      // Drawer items
+      document.querySelectorAll('.drawer-item').forEach((item, idx) => {
+        const badge = item.querySelector('span');
+        if (idx === currentIndex) {
+          item.className = 'drawer-item w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all border bg-lavender-100/90 border-lavender-300 text-lavender-950';
+          badge.className = 'w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 bg-lavender-600 text-white';
+        } else {
+          item.className = 'drawer-item w-full flex items-center gap-3 p-2.5 rounded-xl text-left transition-all border bg-white hover:bg-lavender-50 border-transparent text-slate-700';
+          badge.className = 'w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 bg-lavender-100 text-lavender-700';
+        }
+      });
+    }
+
+    // Drawer open/close
+    let isDrawerOpen = false;
+    function toggleDrawer(forceState) {
+      isDrawerOpen = typeof forceState === 'boolean' ? forceState : !isDrawerOpen;
+      const drawer = document.getElementById('slideDrawer');
+      const backdrop = document.getElementById('slideDrawerBackdrop');
+
+      if (isDrawerOpen) {
+        drawer.classList.remove('translate-x-[110%]');
+        backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      } else {
+        drawer.classList.add('translate-x-[110%]');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+      }
+    }
+
+    // Non-blocking Toast Notification
+    let toastTimeout;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastText');
+      text.textContent = message;
+      box.classList.remove('opacity-0', '-translate-y-2');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        box.classList.add('opacity-0', '-translate-y-2');
+      }, 2800);
+    }
+
+    // Keyboard Navigation (Arrow keys, Space, PageUp/PageDown, Escape)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isDrawerOpen) {
+        toggleDrawer(false);
+        return;
+      }
+      if (isDrawerOpen) return;
+
+      if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) {
+        e.preventDefault();
+        if (currentIndex < SLIDES.length - 1) nextSlide();
+      } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(SLIDES.length - 1);
+      }
+    });
+
+    // Debounced Mouse Wheel Navigation
+    window.addEventListener('wheel', (e) => {
+      if (isDrawerOpen || wheelCooldown) return;
+      if (Math.abs(e.deltaY) < 22) return;
+
+      wheelCooldown = true;
+      if (e.deltaY > 0 && currentIndex < SLIDES.length - 1) {
+        nextSlide();
+      } else if (e.deltaY < 0 && currentIndex > 0) {
+        prevSlide();
+      }
+
+      setTimeout(() => {
+        wheelCooldown = false;
+      }, 650);
+    }, { passive: true });
+
+    // Touch Swipe Gestures (Horizontal & Vertical)
+    viewport.addEventListener('touchstart', (e) => {
+      if (isDrawerOpen) return;
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', (e) => {
+      if (isDrawerOpen) return;
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchStartX - touchEndX;
+      const diffY = touchStartY - touchEndY;
+
+      // Require clear swipe threshold (45px)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 45) {
+        if (diffX > 0 && currentIndex < SLIDES.length - 1) {
+          nextSlide();
+        } else if (diffX < 0 && currentIndex > 0) {
+          prevSlide();
+        }
+      } else if (Math.abs(diffY) > 55) {
+        if (diffY > 0 && currentIndex < SLIDES.length - 1) {
+          nextSlide();
+        } else if (diffY < 0 && currentIndex > 0) {
+          prevSlide();
+        }
+      }
+    }, { passive: true });
+
+    // Start app
+    window.addEventListener('DOMContentLoaded', initPresentation);
+  </script>
+</body>
+</html>
+```
